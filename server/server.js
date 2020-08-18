@@ -27,12 +27,15 @@ io.on('connection', (socket)=>{
         }
         
         socket.join(params.room);
-        users.removeUser(socket.id)
+        var olduser = users.removeUser(socket.id);
+        if(olduser){
+            io.to(olduser.room).emit('updateUserList', users.getUserList(olduser.room));
+        }
         users.addUser(socket.id, params.name, params.room);
         
         io.to(params.room).emit('updateUserList', users.getUserList(params.room));
         socket.emit('newMessage', generateMessage('Admin', 'Welcome to chatroom!'));
-        socket.broadcast.emit('newMessage',generateMessage('Admin', `${params.name} has joined `));
+        socket.to(params.room).broadcast.emit('newMessage',generateMessage('Admin', `${params.name} has joined `));
         callback();
     });
 
